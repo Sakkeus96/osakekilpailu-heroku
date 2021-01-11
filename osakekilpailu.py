@@ -52,6 +52,10 @@ def perus_graafit(mun_data, topin_data):
     ax[2].set_title("Topin salkun yhtiöiden arvot")
     return fig
 
+def taulukon_värjäys(val):
+    color = 'red' if val < 0 else 'green'
+    return 'color: %s' % color
+
 def main():
     st.title("Mun ja Topin osakekilpailu")
     st.markdown("""
@@ -62,13 +66,22 @@ def main():
     fig = perus_graafit(mun_data, topin_data)
     st.pyplot(fig)
     
+    styler_map = {'Nousu/lasku kk alusta %': "{:.2%}", 'Nousu/lasku kisan alusta %': "{:.2%}"}
     mun_data["Salkun arvo"] = mun_data.sum(axis=1)
-    mun_data["Nousu/lasku kk alusta %"] = (mun_data["Salkun arvo"]/3129.315 - 1)*100
-    mun_data["Nousu/lasku kisan alusta %"] = (mun_data["Salkun arvo"]/3000 - 1)*100
+    mun_data["Nousu/lasku kk alusta %"] = (mun_data["Salkun arvo"]/3129.315 - 1)
+    mun_data["Nousu/lasku kisan alusta %"] = (mun_data["Salkun arvo"]/3000 - 1)
+    mun_data = mun_data.style\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Nousu/lasku kk alusta %", "Nousu/lasku kisan alusta %"]])\
+        .format("{:.2f}")\
+        .format(styler_map)
     topin_data["Salkun arvo"] = topin_data.sum(axis=1)
-    topin_data["Nousu/lasku kk alusta %"] = (topin_data["Salkun arvo"]/3105.793 - 1)*100
-    topin_data["Nousu/lasku kisan alusta %"] = (topin_data["Salkun arvo"]/3000 - 1)*100
-    
+    topin_data["Nousu/lasku kk alusta %"] = (topin_data["Salkun arvo"]/3105.793 - 1)
+    topin_data["Nousu/lasku kisan alusta %"] = (topin_data["Salkun arvo"]/3000 - 1)
+    topin_data = topin_data.style\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Nousu/lasku kk alusta %", "Nousu/lasku kisan alusta %"]])\
+        .format("{:.2f}")\
+        .format(styler_map)
+
     st.markdown("""
     Mun salkun data
                 """)
