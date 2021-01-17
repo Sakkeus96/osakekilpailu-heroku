@@ -32,7 +32,7 @@ def datan_haku(yritysten_nimet, start, end, salkun_arvot = (3000, 3000)):
 # Luo graafit
 def perus_graafit(mun_data, topin_data):
     # Salkkujen kokoarvo
-    indeksi = yf.Ticker("^OMXH25").history(start="2020-11-19", end=date.today() + timedelta(days=1))
+    indeksi = yf.Ticker("^OMXH25").history(start="2020-11-20", end=date.today() + timedelta(days=1))
     indeksi = indeksi.Close
     indeksi = indeksi/indeksi.iloc[0]*3000
     fig1, ax = plt.subplots(figsize=(25,10))
@@ -44,23 +44,25 @@ def perus_graafit(mun_data, topin_data):
     ax.legend(["Sakun salkku", "Topin salkku", "OMX Helsinki 25 \n(suhteutettu sal-\nkun kokoon)"], fontsize=17)
     #ax.legend(["Sakun salkku", "Topin salkku", "OMX Helsinki 25 \n(suhteutettu salkun kokoon)"])
     ax.tick_params('x', labelrotation=45)
-    ax.set_ylabel("Salkun arvo")
+    ax.set_ylabel("Salkun arvo", fontsize=20)
     ax.grid()
-    ax.set_title("Salkkujen arvo")
+    ax.set_title("Salkkujen arvo", fontsize=20)
     # Yksittäiset yhtiöt mun salkussa
     fig2, ax = plt.subplots(figsize=(25,10))
     ax.plot(mun_data)
     ax.legend(mun_data.columns, fontsize=17)
     ax.tick_params('x', labelrotation=45)
+    ax.set_ylabel("Yhtiöiden arvot salkussa", fontsize=20)
     ax.grid()
-    ax.set_title("Sakun salkun yhtiöiden arvot")
+    ax.set_title("Sakun salkun yhtiöiden arvot", fontsize=20)
     # Yksittäiset yhtiöt topin salkussa
     fig3, ax = plt.subplots(figsize=(25,10))
     ax.plot(topin_data)
     ax.legend(topin_data.columns, fontsize=17)
     ax.tick_params('x', labelrotation=45)
+    ax.set_ylabel("Yhtiöiden arvot salkussa", fontsize=20)
     ax.grid()
-    ax.set_title("Topin salkun yhtiöiden arvot")
+    ax.set_title("Topin salkun yhtiöiden arvot", fontsize=20)
     return fig1, fig2, fig3
 
 # Luo dataframet
@@ -102,7 +104,7 @@ def taulukon_värjäys(val):
 
 # Värjää kuukauden vaihtumisen
 def kuukauden_alotuksen_värjäys(s):
-    if s.name in [datetime(2020, 12, 18), datetime(2021, 1, 15)]:
+    if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15)]:
         return ['background-color: lightsalmon']*2
     else:
         return ['background-color: white']*2
@@ -115,40 +117,40 @@ def main():
                 """)
     mun_data, topin_data = data_taulukoiden_luonti()
     fig1, fig2, fig3 = perus_graafit(mun_data, topin_data)
+    st.header("Tilanne graafeina")
     st.pyplot(fig1)
     st.pyplot(fig2)
     st.pyplot(fig3)
     
     # Muokataan mun data siistimpään muotoon
-    styler_map = {'Nousu/lasku kk alusta %': "{:.2%}", 'Nousu/lasku kisan alusta %': "{:.2%}"}
+    styler_map = {'Muutos kisan alusta': "{:.2%}", 'Salkun arvo': "{:.2f} €"}
     sarakkeet = mun_data.columns
     mun_data = mun_data[~mun_data.index.duplicated(keep='first')]
     topin_data = topin_data[~topin_data.index.duplicated(keep='first')]
     mun_data["Salkun arvo"] = mun_data.sum(axis=1)
     mun_data = mun_data.drop(sarakkeet, axis=1)
-    mun_data["Nousu/lasku kisan alusta %"] = (mun_data["Salkun arvo"]/3000 - 1)
+    mun_data["Muutos kisan alusta"] = (mun_data["Salkun arvo"]/3000 - 1)
     mun_data = mun_data.style\
-        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Nousu/lasku kisan alusta %"]])\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta"]])\
         .apply(kuukauden_alotuksen_värjäys, axis=1)\
-        .format("{:.2f} €", subset=["Salkun arvo"])\
         .format(styler_map)
     sarakkeet = topin_data.columns
     topin_data["Salkun arvo"] = topin_data.sum(axis=1)
     topin_data = topin_data.drop(sarakkeet, axis=1)
-    topin_data["Nousu/lasku kisan alusta %"] = (topin_data["Salkun arvo"]/3000 - 1)
+    topin_data["Muutos kisan alusta"] = (topin_data["Salkun arvo"]/3000 - 1)
     topin_data = topin_data.style\
-        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Nousu/lasku kisan alusta %"]])\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta"]])\
         .apply(kuukauden_alotuksen_värjäys, axis=1)\
-        .format("{:.2f} €", subset=["Salkun arvo"])\
         .format(styler_map)\
 
-    st.markdown("""
-    Mun salkun data. Värjätyt rivit ovat päiviä jolloinka uudet yhtiöt valitaan
-                """)
-    st.dataframe(mun_data)
-    st.markdown("""
-    Topin salkun data. Värjätyt rivit ovat päiviä jolloinka uudet yhtiöt valitaan
-                """)
-    st.dataframe(topin_data)
+    st.header("Salkkujen arvot ja niiden kehitys")
+    st.markdown("Värjätyt rivit ovat päiviä jolloinka uudet yhtiöt valitaan")
+    column_1, column_2 = st.beta_columns(2)
+    with column_1:
+        st.markdown("""Mun salkun data.""")
+        st.dataframe(mun_data)
+    with column_2:
+        st.markdown("""Topin salkun data""")
+        st.dataframe(topin_data)
     
 main()
