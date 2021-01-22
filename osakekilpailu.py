@@ -84,6 +84,7 @@ def graafit(mun_data, topin_data, kuukausi):
     return fig1, fig2, fig3
 
 # Luo dataframet
+@st.cache
 def data_taulukoiden_luonti():
     ensimmäisen_kk_osakkeet = {"Fsecure":"FSC1V.HE", "Tokmanni":"TOKMAN.HE", 
                                "Fortum":"FORTUM.HE", "Suominen":"SUY1V.HE", 
@@ -198,7 +199,7 @@ def main():
     topin_data = topin_data.style\
         .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta", "Muutos kk alusta"]])\
         .apply(kuukauden_alotuksen_värjäys, axis=1)\
-        .format(styler_map)\
+        .format(styler_map)
 
     st.header("Salkkujen arvot ja niiden kehitys")
     st.markdown("Värjätyt rivit ovat päiviä jolloinka uudet yhtiöt valitaan")
