@@ -30,25 +30,43 @@ def datan_haku(yritysten_nimet, start, end, salkun_arvot = (3000, 3000)):
     return mun_data, topin_data
 
 # Luo graafit
-def perus_graafit(mun_data, topin_data):
-    # Salkkujen kokoarvo
+def graafit(mun_data, topin_data, kuukausi):
+    # Vertailu indeksi
     indeksi = yf.Ticker("^OMXH25").history(start="2020-11-20", end=date.today() + timedelta(days=1))
     indeksi = indeksi.Close
     indeksi = indeksi/indeksi.iloc[0]*3000
-    fig1, ax = plt.subplots(figsize=(25,10))
+    start_eka="2020-11-19" 
+    end_eka="2020-12-19"
+    start_toka = "2020-12-18"
+    end_toka = "2021-01-16"
+    start_kolmas = "2021-01-15"
+    end_kolmas = date.today() + timedelta(days=1)
+    if kuukausi == 1:
+        indeksi = indeksi.loc[start_eka:end_eka]
+        mun_data = mun_data.iloc[:-1].dropna(how='all', axis=1)
+        topin_data = topin_data.iloc[:-1].dropna(how='all', axis=1)
+    elif kuukausi == 2:
+        indeksi = indeksi.loc[start_toka:end_toka]
+        mun_data = mun_data.iloc[1:-1].dropna(how='all', axis=1)
+        topin_data = topin_data.iloc[1:-1].dropna(how='all', axis=1)
+    elif kuukausi == 3:
+        indeksi = indeksi.loc[start_kolmas:end_kolmas]
+        mun_data = mun_data.iloc[1:].dropna(how='all', axis=1)
+        topin_data = topin_data.iloc[1:].dropna(how='all', axis=1)
+    # Koko salkkujen arvo
+    fig1, ax = plt.subplots(figsize=(20,10))
     ax.plot(mun_data.sum(axis=1).index,mun_data.sum(axis=1).values)
     ax.plot(topin_data.sum(axis=1).index,topin_data.sum(axis=1).values)
     ax.plot(indeksi)
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend(["Sakun salkku", "Topin salkku", "OMX Helsinki 25 \n(suhteutettu sal-\nkun kokoon)"], fontsize=17)
-    #ax.legend(["Sakun salkku", "Topin salkku", "OMX Helsinki 25 \n(suhteutettu salkun kokoon)"])
     ax.tick_params('x', labelrotation=45)
     ax.set_ylabel("Salkun arvo", fontsize=20)
     ax.grid()
     ax.set_title("Salkkujen arvo", fontsize=20)
     # Yksittäiset yhtiöt mun salkussa
-    fig2, ax = plt.subplots(figsize=(25,10))
+    fig2, ax = plt.subplots(figsize=(20,10))
     ax.plot(mun_data)
     ax.legend(mun_data.columns, fontsize=17)
     ax.tick_params('x', labelrotation=45)
@@ -56,7 +74,7 @@ def perus_graafit(mun_data, topin_data):
     ax.grid()
     ax.set_title("Sakun salkun yhtiöiden arvot", fontsize=20)
     # Yksittäiset yhtiöt topin salkussa
-    fig3, ax = plt.subplots(figsize=(25,10))
+    fig3, ax = plt.subplots(figsize=(20,10))
     ax.plot(topin_data)
     ax.legend(topin_data.columns, fontsize=17)
     ax.tick_params('x', labelrotation=45)
@@ -97,6 +115,24 @@ def data_taulukoiden_luonti():
     koko_topin_data = pd.concat([topin_data_eka, topin_data_toka, topin_data_kolmas])
     return koko_mun_data, koko_topin_data
 
+def kuukauden_valinta(mun_data, topin_data, kuukausi):
+    start_eka="2020-11-19" 
+    end_eka="2020-12-19"
+    start_toka = "2020-12-18"
+    end_toka = "2021-01-16"
+    start_kolmas = "2021-01-15"
+    end_kolmas = date.today() + timedelta(days=1)
+    if kuukausi == 1:
+        mun_data = mun_data.loc[start_eka:end_eka]
+        topin_data = topin_data.loc[start_eka:end_eka]
+    elif kuukausi == 2:
+        mun_data = mun_data.loc[start_toka:end_toka]
+        topin_data = topin_data.loc[start_toka:end_toka]
+    elif kuukausi == 3:
+        mun_data = mun_data.loc[start_kolmas:end_kolmas]
+        topin_data = topin_data.loc[start_kolmas:end_kolmas]
+    return mun_data, topin_data
+
 # Värjää taulukon numeroita
 def taulukon_värjäys(val):
     color = 'red' if val < 0 else 'green'
@@ -105,41 +141,62 @@ def taulukon_värjäys(val):
 # Värjää kuukauden vaihtumisen
 def kuukauden_alotuksen_värjäys(s):
     if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15)]:
-        return ['background-color: lightsalmon']*2
+        return ['background-color: lightsalmon']*3
     else:
-        return ['background-color: white']*2
+        return ['background-color: white']*3
     
 def main():
     st.title("Mun ja Topin osakekilpailu")
+    st.header("Kilpailun idea")
     st.markdown("""
-    Ohjelman tarkoituksena on laskea minun ja Topin osakekilpailun tulos
-    ohjelman ajohetkellä
-                """)
+        Idea on valita kuukauden välein 3 osaketta Helsingin pörssistä, joiden uskoo menestyvän parhaiten siinä kuussa. Salkun
+        alkupääoma on 3000 euroa ja kuhunkin osakkeeseen sijoitetaan sama summa aina kuukauden alussa. 
+    """)
+    st.header("Ohjelman toiminta")
+    st.markdown("""
+        Ohjelman tarkoituksena on laskea minun ja Topin osakekilpailun tulos
+        ohjelman ajohetkellä. Kilpailua voidaan tarkastella kuukausi tasolla tai koko kilpailun tasolla.
+    """)
+    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 4, 4)
     mun_data, topin_data = data_taulukoiden_luonti()
-    fig1, fig2, fig3 = perus_graafit(mun_data, topin_data)
+    mun_data, topin_data = kuukauden_valinta(mun_data, topin_data, kuukausi)
+    fig1, fig2, fig3 = graafit(mun_data, topin_data, kuukausi)
     st.header("Tilanne graafeina")
     st.pyplot(fig1)
     st.pyplot(fig2)
     st.pyplot(fig3)
     
-    # Muokataan mun data siistimpään muotoon
-    styler_map = {'Muutos kisan alusta': "{:.2%}", 'Salkun arvo': "{:.2f} €"}
+    # Muokataan dataa taulukoita varten
     sarakkeet = mun_data.columns
     mun_data = mun_data[~mun_data.index.duplicated(keep='first')]
     topin_data = topin_data[~topin_data.index.duplicated(keep='first')]
     mun_data["Salkun arvo"] = mun_data.sum(axis=1)
     mun_data = mun_data.drop(sarakkeet, axis=1)
     mun_data["Muutos kisan alusta"] = (mun_data["Salkun arvo"]/3000 - 1)
-    mun_data = mun_data.style\
-        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta"]])\
-        .apply(kuukauden_alotuksen_värjäys, axis=1)\
-        .format(styler_map)
     sarakkeet = topin_data.columns
     topin_data["Salkun arvo"] = topin_data.sum(axis=1)
     topin_data = topin_data.drop(sarakkeet, axis=1)
     topin_data["Muutos kisan alusta"] = (topin_data["Salkun arvo"]/3000 - 1)
+    if kuukausi == 1:
+        mun_data["Muutos kk alusta"] = mun_data["Muutos kisan alusta"]
+        topin_data["Muutos kk alusta"] = topin_data["Muutos kisan alusta"]
+    if kuukausi == 2:
+        mun_data["Muutos kk alusta"] = (mun_data["Salkun arvo"]/mun_data.loc["2020-12-18"]["Salkun arvo"] - 1)
+        topin_data["Muutos kk alusta"] = (topin_data["Salkun arvo"]/topin_data.loc["2020-12-18"]["Salkun arvo"] - 1)
+    if kuukausi == 3:
+        mun_data["Muutos kk alusta"] = (mun_data["Salkun arvo"]/mun_data.loc["2021-01-15"]["Salkun arvo"] - 1)
+        topin_data["Muutos kk alusta"] = (topin_data["Salkun arvo"]/topin_data.loc["2021-01-15"]["Salkun arvo"] - 1)
+    if kuukausi == 4:
+        mun_data["Muutos kk alusta"] = mun_data["Muutos kisan alusta"]
+        topin_data["Muutos kk alusta"] = topin_data["Muutos kisan alusta"]
+    # Muokataan taulukoiden tyyliä
+    styler_map = {'Muutos kisan alusta': "{:.2%}", 'Salkun arvo': "{:.2f} €", "Muutos kk alusta": "{:.2%}"}
+    mun_data = mun_data.style\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta", "Muutos kk alusta"]])\
+        .apply(kuukauden_alotuksen_värjäys, axis=1)\
+        .format(styler_map)
     topin_data = topin_data.style\
-        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta"]])\
+        .applymap(taulukon_värjäys, subset=pd.IndexSlice[:, ["Muutos kisan alusta", "Muutos kk alusta"]])\
         .apply(kuukauden_alotuksen_värjäys, axis=1)\
         .format(styler_map)\
 
