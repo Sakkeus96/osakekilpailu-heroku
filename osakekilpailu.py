@@ -79,24 +79,24 @@ def graafit(mun_data, topin_data, kuukausi):
     ax.set_title("Salkkujen kehitys", fontsize=20)
 
     # Yksittäiset yhtiöt mun salkussa
+    sarakkeiden_määrä = int(len(mun_data.columns))
     fig2, ax = plt.subplots(figsize=(20,10))
-    for i in range(0, int(len(mun_data.columns)), 3):
+    for i in range(0, sarakkeiden_määrä, 3):
         yhden_kuukauden_yhtiöt = mun_data.iloc[:,i:i+3].dropna(how='all', axis=0)
         ax.plot((yhden_kuukauden_yhtiöt.div(yhden_kuukauden_yhtiöt.iloc[0]) - 1)*100)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
-    ax.legend(mun_data.columns, fontsize=17)
+    ax.legend(mun_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3))
     ax.tick_params('x', labelrotation=45)
     ax.set_ylabel("Yhtiöiden kasvu/lasku %", fontsize=20)
     ax.grid()
     ax.set_title("Sakun salkun yhtiöiden kehitys", fontsize=20)
-    
     # Yksittäiset yhtiöt topin salkussa
     fig3, ax = plt.subplots(figsize=(20,10))
-    for i in range(0, int(len(topin_data.columns)), 3):
+    for i in range(0, sarakkeiden_määrä, 3):
         yhden_kuukauden_yhtiöt = topin_data.iloc[:,i:i+3].dropna(how='all', axis=0)
         ax.plot((yhden_kuukauden_yhtiöt.div(yhden_kuukauden_yhtiöt.iloc[0]) - 1)*100)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
-    ax.legend(topin_data.columns, fontsize=17)
+    ax.legend(topin_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3))
     ax.tick_params('x', labelrotation=45)
     ax.set_ylabel("Yhtiöiden kasvu/lasku %", fontsize=20)
     ax.grid()
@@ -230,14 +230,12 @@ def main():
         .apply(kuukauden_alotuksen_värjäys, axis=1)\
         .format(styler_map)
 
+    # Taulukoiden renderöinti
     st.header("Salkkujen arvot ja niiden kehitys")
     st.markdown("Värjätyt rivit ovat päiviä jolloinka uudet yhtiöt valitaan")
-    column_1, column_2 = st.beta_columns(2)
-    with column_1:
-        st.markdown("""Mun salkun data.""")
-        st.dataframe(mun_kehitys)
-    with column_2:
-        st.markdown("""Topin salkun data""")
-        st.dataframe(topin_kehitys)
+    st.markdown("""Mun salkun data.""")
+    st.dataframe(mun_kehitys)
+    st.markdown("""Topin salkun data""")
+    st.dataframe(topin_kehitys)
     
 main()
