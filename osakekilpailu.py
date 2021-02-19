@@ -25,6 +25,7 @@ def datan_haku(yritysten_nimet, start, end, salkun_arvot = (3000, 3000)):
     # Käydään yhtiöt läpi ja tallennetaan historia tiedot
     for i, yhtiö in enumerate(yritykset[:3]):
         historia = yhtiö.history(start=start, end=end)
+        historia = historia[~historia.index.duplicated(keep='last')]
         osakkeiden_lkm = salkun_arvot[0]/3/historia[0:1].Close.values[0]
         mun_data[nimet[i]] = historia.Close * osakkeiden_lkm
     for i, yhtiö in enumerate(yritykset[3:]):
