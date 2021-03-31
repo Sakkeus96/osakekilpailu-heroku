@@ -25,13 +25,16 @@ def datan_haku(yritysten_nimet, start, end, salkun_arvot = (3000, 3000)):
     # Käydään yhtiöt läpi ja tallennetaan historia tiedot
     for i, yhtiö in enumerate(yritykset[:3]):
         historia = yhtiö.history(start=start, end=end)
-        historia = historia[~historia.index.duplicated(keep='last')]
+        historia = historia.dropna()
         osakkeiden_lkm = salkun_arvot[0]/3/historia[0:1].Close.values[0]
         mun_data[nimet[i]] = historia.Close * osakkeiden_lkm
+        mun_data = mun_data.loc[~mun_data.index.duplicated()]
     for i, yhtiö in enumerate(yritykset[3:]):
         historia = yhtiö.history(start=start, end=end)
+        historia = historia.dropna()
         osakkeiden_lkm = salkun_arvot[1]/3/historia[0:1].Close.values[0]
         topin_data[nimet[i+3]] = historia.Close * osakkeiden_lkm
+        topin_data = topin_data.loc[~topin_data.index.duplicated()]
     return mun_data, topin_data
 
 # Luo graafit
