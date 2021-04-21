@@ -43,6 +43,7 @@ def graafit(mun_data, topin_data, kuukausi):
     indeksi = yf.Ticker("^OMXH25").history(start="2020-11-20", end=date.today() + timedelta(days=1))
     indeksi = indeksi.Close
     indeksi = indeksi/indeksi.iloc[0]*3000
+    # Kuukausi muokkaukset sama päivä seuraavan kuun alkuun ja vanhan loppuun
     start_eka="2020-11-19" 
     end_eka="2020-12-19"
     start_toka = "2020-12-18"
@@ -50,9 +51,12 @@ def graafit(mun_data, topin_data, kuukausi):
     start_kolmas = "2021-01-15"
     end_kolmas = "2021-02-16"
     start_neljäs = "2021-02-15"
-    end_neljäs = "2021-03-16"
+    end_neljäs = "2021-03-15"
     start_viides = "2021-03-15"
-    end_viides = date.today() + timedelta(days=1)
+    end_viides = "2021-04-15"
+    start_kuudes = "2021-04-15"
+    end_kuudes = date.today() + timedelta(days=1)
+    # Kuukausi muokkaukset
     if kuukausi == 1:
         indeksi = indeksi.loc[start_eka:end_eka]
         mun_data = mun_data.iloc[:,:3]
@@ -73,6 +77,10 @@ def graafit(mun_data, topin_data, kuukausi):
         indeksi = indeksi.loc[start_viides:end_viides]
         mun_data = mun_data.iloc[:,12:15]
         topin_data = topin_data.iloc[:,12:15]
+    elif kuukausi == 6:
+        indeksi = indeksi.loc[start_kuudes:end_kuudes]
+        mun_data = mun_data.iloc[:,15:18]
+        topin_data = topin_data.iloc[:,15:18]
 
     # Koko salkkujen arvo
     fig1, ax = plt.subplots(figsize=(20,10))
@@ -122,6 +130,7 @@ def graafit(mun_data, topin_data, kuukausi):
 # Luo dataframet
 @st.cache
 def data_taulukoiden_luonti():
+    # Kuukausi muokkaukset
     ensimmäisen_kk_osakkeet = {"Fsecure":"FSC1V.HE", "Tokmanni":"TOKMAN.HE", 
                                "Fortum":"FORTUM.HE", "Suominen":"SUY1V.HE", 
                                "Kamux":"KAMUX.HE", "Vincit":"VINCIT.HE"}
@@ -137,8 +146,13 @@ def data_taulukoiden_luonti():
     viidennen_kk_osakkeet = {"Neste":"NESTE.HE", "Qt-Group":"QTCOM.HE", 
                              "Keskob":"KESKOB.HE", "Honkarakenne":"HONBS.HE", 
                              "Nixu":"NIXU.HE", "Aktia Pankki":"AKTIA.HE"}
+    kuudennen_kk_osakkeet = {"UPM":"UPM.HE", "Kemira":"KEMIRA.HE", 
+                             "Alma Media":"ALMA.HE", "Talenom":"TNOM.HE", 
+                             "Oma säästöpankki":"OMASP.HE", "Avidly":"AVIDLY.HE"}
+                             
 
     # Kunkin kuukauden aloitus ja lopetus
+    # Kuukausi muokkaukset
     start_eka="2020-11-19" 
     end_eka="2020-12-19"
     start_toka = "2020-12-18"
@@ -148,8 +162,11 @@ def data_taulukoiden_luonti():
     start_neljäs = "2021-02-15"
     end_neljäs = "2021-03-16"
     start_viides = "2021-03-15"
-    end_viides = date.today() + timedelta(days=1)
+    end_viides = "2021-04-16"
+    start_kuudes = "2021-04-15"
+    end_kuudes = date.today() + timedelta(days=1)
 
+    # Kuukausi muokkaukset
     # Ekan kuukauden data
     mun_data_eka, topin_data_eka = datan_haku(ensimmäisen_kk_osakkeet, start_eka, end_eka)
     mun_salkun_arvo = mun_data_eka.sum(axis=1).iloc[-1]
@@ -172,11 +189,17 @@ def data_taulukoiden_luonti():
 
     # Viidennen kuukauden data
     mun_data_viides, topin_data_viides = datan_haku(viidennen_kk_osakkeet, start_viides, end_viides, (mun_salkun_arvo, topin_salkun_arvo))
-    koko_mun_data = pd.concat([mun_data_eka, mun_data_toka, mun_data_kolmas, mun_data_neljäs, mun_data_viides], axis=1)
-    koko_topin_data = pd.concat([topin_data_eka, topin_data_toka, topin_data_kolmas, topin_data_neljäs, topin_data_viides], axis=1)
+    mun_salkun_arvo = mun_data_viides.sum(axis=1).iloc[-1]
+    topin_salkun_arvo = topin_data_viides.sum(axis=1).iloc[-1]
+
+    # Kuudennen kuukauden data
+    mun_data_kuudes, topin_data_kuudes = datan_haku(kuudennen_kk_osakkeet, start_kuudes, end_kuudes, (mun_salkun_arvo, topin_salkun_arvo))
+    koko_mun_data = pd.concat([mun_data_eka, mun_data_toka, mun_data_kolmas, mun_data_neljäs, mun_data_viides, mun_data_kuudes], axis=1)
+    koko_topin_data = pd.concat([topin_data_eka, topin_data_toka, topin_data_kolmas, topin_data_neljäs, topin_data_viides, topin_data_kuudes], axis=1)
     return koko_mun_data, koko_topin_data
 
 def kuukauden_valinta(mun_data, topin_data, kuukausi):
+    # Kuukausi muokkaukset
     start_eka="2020-11-19" 
     end_eka="2020-12-19"
     start_toka = "2020-12-18"
@@ -186,7 +209,10 @@ def kuukauden_valinta(mun_data, topin_data, kuukausi):
     start_neljäs = "2021-02-15"
     end_neljäs = "2021-03-15"
     start_viides = "2021-03-15"
-    end_viides = date.today() + timedelta(days=1)
+    end_viides = "2021-04-15"
+    start_kuudes = "2021-04-15"
+    end_kuudes = date.today() + timedelta(days=1)
+    # Kuukausi muokkaukset
     if kuukausi == 1:
         mun_data = mun_data.loc[start_eka:end_eka]
         topin_data = topin_data.loc[start_eka:end_eka]
@@ -202,6 +228,9 @@ def kuukauden_valinta(mun_data, topin_data, kuukausi):
     elif kuukausi == 5:
         mun_data = mun_data.loc[start_viides:end_viides]
         topin_data = topin_data.loc[start_viides:end_viides]
+    elif kuukausi == 6:
+        mun_data = mun_data.loc[start_kuudes:end_kuudes]
+        topin_data = topin_data.loc[start_kuudes:end_kuudes]
     return mun_data, topin_data
 
 # Värjää taulukon numeroita
@@ -211,7 +240,8 @@ def taulukon_värjäys(val):
 
 # Värjää kuukauden vaihtumisen
 def kuukauden_alotuksen_värjäys(s):
-    if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15), datetime(2021, 2, 15), datetime(2021, 3, 15)]:
+    # Kuukausi muokkaukset
+    if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15), datetime(2021, 2, 15), datetime(2021, 3, 15), datetime(2021, 4, 15)]:
         return ['background-color: lightsalmon']*3
     else:
         return ['background-color: white']*3
@@ -228,7 +258,8 @@ def main():
         Ohjelman tarkoituksena on laskea minun ja Topin osakekilpailun tulos
         ohjelman ajohetkellä. Kilpailua voidaan tarkastella kuukausi tasolla tai koko kilpailun tasolla.
     """)
-    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 6, 6)
+    # Kuukausi muokkaukset
+    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 7, 7)
     mun_data, topin_data = data_taulukoiden_luonti()
     mun_data, topin_data = kuukauden_valinta(mun_data, topin_data, kuukausi)
     fig1, fig2, fig3 = graafit(mun_data, topin_data, kuukausi)
@@ -252,6 +283,7 @@ def main():
     topin_data_summa[mask] = topin_data_summa[mask]/2
     topin_kehitys["Salkun arvo"] = topin_data_summa
     topin_kehitys["Muutos kisan alusta"] = (topin_kehitys["Salkun arvo"]/3000 - 1)
+    # Kuukausi muokkaukset
     if kuukausi == 1:
         mun_kehitys["Muutos kk alusta"] = mun_kehitys["Muutos kisan alusta"]
         topin_kehitys["Muutos kk alusta"] = topin_kehitys["Muutos kisan alusta"]
@@ -268,6 +300,9 @@ def main():
         mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-03-15"]["Salkun arvo"] - 1)
         topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-03-15"]["Salkun arvo"] - 1)
     if kuukausi == 6:
+        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-04-15"]["Salkun arvo"] - 1)
+        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-04-15"]["Salkun arvo"] - 1)
+    if kuukausi == 7:
         mun_kehitys["Muutos kk alusta"] = mun_kehitys["Muutos kisan alusta"]
         topin_kehitys["Muutos kk alusta"] = topin_kehitys["Muutos kisan alusta"]
 
