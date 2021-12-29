@@ -51,70 +51,26 @@ def graafit(mun_data, topin_data, kuukausi):
     indeksi = yf.Ticker("^OMXH25").history(start="2020-11-20", end=date.today() + timedelta(days=1))
     indeksi = indeksi.Close
     indeksi = indeksi/indeksi.iloc[0]*3000
-    # Kuukausi muokkaukset sama päivä seuraavan kuun alkuun ja vanhan loppuun
-    start_eka="2020-11-19" 
-    end_eka="2020-12-19"
-    start_toka = "2020-12-18"
-    end_toka = "2021-01-16"
-    start_kolmas = "2021-01-15"
-    end_kolmas = "2021-02-16"
-    start_neljäs = "2021-02-15"
-    end_neljäs = "2021-03-15"
-    start_viides = "2021-03-15"
-    end_viides = "2021-04-15"
-    start_kuudes = "2021-04-15"
-    end_kuudes = "2021-05-15"
-    start_seitsemäs = "2021-05-14"
-    end_seitsemäs = "2021-06-14"
-    start_kasi = "2021-06-15"
-    end_kasi = "2021-07-14"
-    start_ysi = "2021-07-15"
-    end_ysi = date.today() + timedelta(days=1)
-    # Kuukausi muokkaukset
-    if kuukausi == 1:
-        indeksi = indeksi.loc[start_eka:end_eka]
-        mun_data = mun_data.iloc[:,:3]
-        topin_data = topin_data.iloc[:,:3]
-    elif kuukausi == 2:
-        indeksi = indeksi.loc[start_toka:end_toka]
-        mun_data = mun_data.iloc[:,3:6]
-        topin_data = topin_data.iloc[:,3:6]
-    elif kuukausi == 3:
-        indeksi = indeksi.loc[start_kolmas:end_kolmas]
-        mun_data = mun_data.iloc[:,6:9]
-        topin_data = topin_data.iloc[:,6:9]
-    elif kuukausi == 4:
-        indeksi = indeksi.loc[start_neljäs:end_neljäs]
-        mun_data = mun_data.iloc[:,9:12]
-        topin_data = topin_data.iloc[:,9:12]
-    elif kuukausi == 5:
-        indeksi = indeksi.loc[start_viides:end_viides]
-        mun_data = mun_data.iloc[:,12:15]
-        topin_data = topin_data.iloc[:,12:15]
-    elif kuukausi == 6:
-        indeksi = indeksi.loc[start_kuudes:end_kuudes]
-        mun_data = mun_data.iloc[:,15:18]
-        topin_data = topin_data.iloc[:,15:18]
-    elif kuukausi == 7:
-        indeksi = indeksi.loc[start_seitsemäs:end_seitsemäs]
-        mun_data = mun_data.iloc[:,18:21]
-        topin_data = topin_data.iloc[:,18:21]
-    elif kuukausi == 8:
-        indeksi = indeksi.loc[start_kasi:end_kasi]
-        mun_data = mun_data.iloc[:,21:24]
-        topin_data = topin_data.iloc[:,21:24]
-    elif kuukausi == 9:
-        indeksi = indeksi.loc[start_ysi:end_ysi]
-        mun_data = mun_data.iloc[:,24:27]
-        topin_data = topin_data.iloc[:,24:27]
+    # Kuukausi muokkaukset TÄMÄ VAIKUTTAA VAAN INDEKSIIN
+    ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-16"), ("2021-02-15","2021-03-15"), ("2021-03-15","2021-04-15"),
+                    ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-14"), ("2021-06-15","2021-07-14"), ("2021-07-15","2021-08-16"), ("2021-08-16","2021-09-20"),
+                    ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15",date.today() + timedelta(days=1))]
+
+    pituus = len(ostot_ja_myynnit)
+    if kuukausi <= pituus:
+        indeksi = indeksi.loc[ostot_ja_myynnit[kuukausi - 1][0]:ostot_ja_myynnit[kuukausi - 1][1]]
+        mun_data = mun_data.iloc[:, (kuukausi - 1)*3:kuukausi*3]
+        topin_data = topin_data.iloc[:, (kuukausi - 1)*3:kuukausi*3]
 
     # Koko salkkujen arvo
     fig1, ax = plt.subplots(figsize=(20,10))
     mun_data_summa = mun_data.sum(axis=1)
-    mask = mun_data_summa > 6000
+    ka = mun_data.mean(axis=1)
+    mask = mun_data_summa > ka*6-500
     mun_data_summa[mask] = mun_data_summa[mask]/2
     topin_data_summa = topin_data.sum(axis=1)
-    mask = topin_data_summa > 6000
+    ka = topin_data.mean(axis=1)
+    mask = topin_data_summa > ka*6-500
     topin_data_summa[mask] = topin_data_summa[mask]/2
     ax.plot(mun_data_summa.index, (mun_data_summa.values/mun_data_summa.iloc[0] - 1)*100)
     ax.plot(topin_data_summa.index, (topin_data_summa.values/topin_data_summa.iloc[0] - 1)*100)
@@ -135,7 +91,8 @@ def graafit(mun_data, topin_data, kuukausi):
         yhden_kuukauden_yhtiöt = mun_data.iloc[:,i:i+3].dropna(how='all', axis=0)
         ax.plot((yhden_kuukauden_yhtiöt.div(yhden_kuukauden_yhtiöt.iloc[0]) - 1)*100)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
-    ax.legend(mun_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3))
+    ax.legend(mun_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3), loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=True, shadow=True)
     ax.tick_params('x', labelrotation=45)
     ax.set_ylabel("Yhtiöiden kasvu/lasku %", fontsize=20)
     ax.grid()
@@ -146,7 +103,8 @@ def graafit(mun_data, topin_data, kuukausi):
         yhden_kuukauden_yhtiöt = topin_data.iloc[:,i:i+3].dropna(how='all', axis=0)
         ax.plot((yhden_kuukauden_yhtiöt.div(yhden_kuukauden_yhtiöt.iloc[0]) - 1)*100)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
-    ax.legend(topin_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3))
+    ax.legend(topin_data.columns, fontsize=17, ncol=int(sarakkeiden_määrä/3), loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=True, shadow=True)
     ax.tick_params('x', labelrotation=45)
     ax.set_ylabel("Yhtiöiden kasvu/lasku %", fontsize=20)
     ax.grid()
@@ -181,125 +139,61 @@ def data_taulukoiden_luonti():
     kasi_kk_osakkeet = {"Elisa":"ELISA.HE", "Keskob":"KESKOB.HE", 
                              "Rovio":"ROVIO.HE", "Innofactor":"IFA1V.HE", 
                              "Leaddesk":"LEADD.HE", "Tecnotree":"TEM1V.HE"}
-    ysi_kk_osakkeet= {"Kamux":"KAMUX.HE", "Nokia":"NOKIA.HE", 
+    ysi_kk_osakkeet = {"Kamux":"KAMUX.HE", "Nokia":"NOKIA.HE", 
                              "Terveystalo":"TTALO.HE", "Enersense International":"ESENSE.HE", 
                              "Gofore":"GOFORE.HE", "Metsä Board":"METSB.HE"}
+    kymppi_kk_osakkeet = {"Pihlajalinna":"PIHLIS.HE", "Rovio":"ROVIO.HE", 
+                             "Terveystalo":"TTALO.HE", "Trainers House":"TRH1V.HE", 
+                             "Tecnotree":"TEM1V.HE", "Stockmann":"STOCKA.HE"}
+    ykstoista_kk_osakkeet = {"Avidly":"AVIDLY.HE", "Rovio":"ROVIO.HE", 
+                             "Nokia":"NOKIA.HE", "Tecnotree":"TEM1V.HE", 
+                             "Trainers House":"TRH1V.HE", "Avidly1":"AVIDLY.HE"}
+    kakstoista_kk_osakkeet = {"Kamux":"KAMUX.HE", "Stockmann":"STOCKA.HE", 
+                             "Tokmanni":"TOKMAN.HE", "Avidly":"AVIDLY.HE", 
+                             "Tecnotree":"TEM1V.HE", "Trainers House":"TRH1V.HE"}
+    kolmetoista_kk_osakkeet = {"Sampo":"SAMPO.HE", "Fiskars":"FSKRS.HE", 
+                             "Tokmanni":"TOKMAN.HE", "Tecnotree":"TEM1V.HE", 
+                             "Citycon":"CTY1S.HE", "Innofactor":"IFA1V.HE"}
+    neljätoista_kk_osakkeet = {"Nordea":"NDA-FI.HE", "TietoEvry":"TIETO.HE", 
+                             "Tokmanni":"TOKMAN.HE", "Tecnotree":"TEM1V.HE", 
+                             "Avidly":"AVIDLY.HE", "Stockmann":"STOCKA.HE"}
+
+    osakelista = [ensimmäisen_kk_osakkeet, toisen_kk_osakkeet, kolmannen_kk_osakkeet, neljännen_kk_osakkeet, viidennen_kk_osakkeet, 
+                    kuudennen_kk_osakkeet, seitsemännen_kk_osakkeet, kasi_kk_osakkeet, ysi_kk_osakkeet, kymppi_kk_osakkeet, ykstoista_kk_osakkeet, 
+                    kakstoista_kk_osakkeet, kolmetoista_kk_osakkeet, neljätoista_kk_osakkeet]
                              
 
     # Kunkin kuukauden aloitus ja lopetus
     # Kuukausi muokkaukset
-    start_eka="2020-11-19" 
-    end_eka="2020-12-19"
-    start_toka = "2020-12-18"
-    end_toka = "2021-01-16"
-    start_kolmas = "2021-01-15"
-    end_kolmas = "2021-02-16"
-    start_neljäs = "2021-02-15"
-    end_neljäs = "2021-03-16"
-    start_viides = "2021-03-15"
-    end_viides = "2021-04-16"
-    start_kuudes = "2021-04-15"
-    end_kuudes = "2021-05-15"
-    start_seitsemäs = "2021-05-14"
-    end_seitsemäs = "2021-06-15"
-    start_kasi = "2021-06-15"
-    end_kasi = "2021-07-15"
-    start_ysi = "2021-07-15"
-    end_ysi = date.today() + timedelta(days=1)
-    # Kuukausi muokkaukset
-    # Ekan kuukauden data
-    mun_data_eka, topin_data_eka, mun_osinko, topin_osinko = datan_haku(ensimmäisen_kk_osakkeet, start_eka, end_eka)
-    mun_salkun_arvo = mun_data_eka.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_eka.sum(axis=1).iloc[-1] + topin_osinko
+    ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-16"), ("2021-02-15","2021-03-16"), ("2021-03-15","2021-04-16"),
+                        ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-15"), ("2021-06-15","2021-07-15"), ("2021-07-15","2021-08-17"), ("2021-08-16","2021-09-21"),
+                        ("2021-09-20","2021-10-19"), ("2021-10-18","2021-11-16"), ("2021-11-15","2021-12-16"), ("2021-12-15",date.today() + timedelta(days=1))]
+    
+    salkun_arvo_mun = 3000
+    salkun_arvo_topin = 3000
+    mun_koko_data = pd.DataFrame()
+    topin_koko_data = pd.DataFrame()
+    for laskuri, pari in enumerate(ostot_ja_myynnit):
+        data_mun, data_topin, osinko_mun, osinko_topin = datan_haku(osakelista[laskuri], pari[0], pari[1], (salkun_arvo_mun, salkun_arvo_topin))
+        salkun_arvo_mun = data_mun.sum(axis=1).iloc[-1] + osinko_mun
+        salkun_arvo_topin = data_topin.sum(axis=1).iloc[-1] + osinko_topin
+        mun_koko_data = pd.concat([mun_koko_data, data_mun], axis=1)
+        topin_koko_data = pd.concat([topin_koko_data, data_topin], axis=1)
 
-    # Tokan kuukauden data
-    mun_data_toka, topin_data_toka, mun_osinko, topin_osinko = datan_haku(toisen_kk_osakkeet, start_toka, end_toka, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_toka.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_toka.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Kolmannen kuukauden data
-    mun_data_kolmas, topin_data_kolmas, mun_osinko, topin_osinko = datan_haku(kolmannen_kk_osakkeet, start_kolmas, end_kolmas, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_kolmas.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_kolmas.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Neljännen kuukauden data
-    mun_data_neljäs, topin_data_neljäs, mun_osinko, topin_osinko = datan_haku(neljännen_kk_osakkeet, start_neljäs, end_neljäs, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_neljäs.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_neljäs.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Viidennen kuukauden data
-    mun_data_viides, topin_data_viides, mun_osinko, topin_osinko = datan_haku(viidennen_kk_osakkeet, start_viides, end_viides, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_viides.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_viides.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Kuudennen kuukauden data
-    mun_data_kuudes, topin_data_kuudes, mun_osinko, topin_osinko = datan_haku(kuudennen_kk_osakkeet, start_kuudes, end_kuudes, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_kuudes.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_kuudes.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Seitsemännen kuukauden data
-    mun_data_seitsemäs, topin_data_seitsemäs, mun_osinko, topin_osinko = datan_haku(seitsemännen_kk_osakkeet, start_seitsemäs, end_seitsemäs, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_seitsemäs.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_seitsemäs.sum(axis=1).iloc[-1] + topin_osinko
-
-    # Kahdeksannen kuukauden data
-    mun_data_kasi, topin_data_kasi, mun_osinko, topin_osinko = datan_haku(kasi_kk_osakkeet, start_kasi, end_kasi, (mun_salkun_arvo, topin_salkun_arvo))
-    mun_salkun_arvo = mun_data_kasi.sum(axis=1).iloc[-1] + mun_osinko
-    topin_salkun_arvo = topin_data_kasi.sum(axis=1).iloc[-1] + topin_osinko
-    # Yhdeksännen kuukauden data
-    mun_data_ysi, topin_data_ysi, mun_osinko, topin_osinko = datan_haku(ysi_kk_osakkeet, start_ysi, end_ysi, (mun_salkun_arvo, topin_salkun_arvo))
-    koko_mun_data = pd.concat([mun_data_eka, mun_data_toka, mun_data_kolmas, mun_data_neljäs, mun_data_viides, mun_data_kuudes, mun_data_seitsemäs, mun_data_kasi, mun_data_ysi], axis=1)
-    koko_topin_data = pd.concat([topin_data_eka, topin_data_toka, topin_data_kolmas, topin_data_neljäs, topin_data_viides, topin_data_kuudes, topin_data_seitsemäs, topin_data_kasi, topin_data_ysi], axis=1)
-    return koko_mun_data, koko_topin_data
+    return mun_koko_data, topin_koko_data
 
 def kuukauden_valinta(mun_data, topin_data, kuukausi):
     # Kuukausi muokkaukset
-    start_eka="2020-11-19" 
-    end_eka="2020-12-19"
-    start_toka = "2020-12-18"
-    end_toka = "2021-01-16"
-    start_kolmas = "2021-01-15"
-    end_kolmas = "2021-02-15"
-    start_neljäs = "2021-02-15"
-    end_neljäs = "2021-03-15"
-    start_viides = "2021-03-15"
-    end_viides = "2021-04-15"
-    start_kuudes = "2021-04-15"
-    end_kuudes = "2021-05-15"
-    start_seitsemäs = "2021-05-14"
-    end_seitsemäs = "2021-06-14"
-    start_kasi = "2021-06-15"
-    end_kasi = "2021-07-14"
-    start_ysi = "2021-07-15"
-    end_ysi = date.today() + timedelta(days=1)
-    # Kuukausi muokkaukset
-    if kuukausi == 1:
-        mun_data = mun_data.loc[start_eka:end_eka]
-        topin_data = topin_data.loc[start_eka:end_eka]
-    elif kuukausi == 2:
-        mun_data = mun_data.loc[start_toka:end_toka]
-        topin_data = topin_data.loc[start_toka:end_toka]
-    elif kuukausi == 3:
-        mun_data = mun_data.loc[start_kolmas:end_kolmas]
-        topin_data = topin_data.loc[start_kolmas:end_kolmas]
-    elif kuukausi == 4:
-        mun_data = mun_data.loc[start_neljäs:end_neljäs]
-        topin_data = topin_data.loc[start_neljäs:end_neljäs]
-    elif kuukausi == 5:
-        mun_data = mun_data.loc[start_viides:end_viides]
-        topin_data = topin_data.loc[start_viides:end_viides]
-    elif kuukausi == 6:
-        mun_data = mun_data.loc[start_kuudes:end_kuudes]
-        topin_data = topin_data.loc[start_kuudes:end_kuudes]
-    elif kuukausi == 7:
-        mun_data = mun_data.loc[start_seitsemäs:end_seitsemäs]
-        topin_data = topin_data.loc[start_seitsemäs:end_seitsemäs]
-    elif kuukausi == 8:
-        mun_data = mun_data.loc[start_kasi:end_kasi]
-        topin_data = topin_data.loc[start_kasi:end_kasi]
-    elif kuukausi == 9:
-        mun_data = mun_data.loc[start_ysi:end_ysi]
-        topin_data = topin_data.loc[start_ysi:end_ysi]
+    ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-15"), ("2021-02-15","2021-03-15"), ("2021-03-15","2021-04-15"),
+                        ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-14"), ("2021-06-15","2021-07-14"), ("2021-07-15","2021-08-16"), ("2021-08-16","2021-09-20"),
+                        ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15",date.today() + timedelta(days=1))]
+    pituus = len(ostot_ja_myynnit)
+    if kuukausi <= pituus:
+        mun_data = mun_data.loc[ostot_ja_myynnit[kuukausi - 1][0]:ostot_ja_myynnit[kuukausi - 1][1]]
+        topin_data = topin_data.loc[ostot_ja_myynnit[kuukausi - 1][0]:ostot_ja_myynnit[kuukausi - 1][1]]
+    else:
+        mun_data = mun_data.loc[ostot_ja_myynnit[0][0]:ostot_ja_myynnit[pituus - 1][1]]
+        topin_data = topin_data.loc[ostot_ja_myynnit[0][0]:ostot_ja_myynnit[pituus - 1][1]]
     return mun_data, topin_data
 
 # Värjää taulukon numeroita
@@ -311,7 +205,8 @@ def taulukon_värjäys(val):
 def kuukauden_alotuksen_värjäys(s):
     # Kuukausi muokkaukset
     if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15), datetime(2021, 2, 15), datetime(2021, 3, 15), 
-                datetime(2021, 4, 15), datetime(2021, 5, 14), datetime(2021, 6, 15), datetime(2021, 7, 15)]:
+                datetime(2021, 4, 15), datetime(2021, 5, 14), datetime(2021, 6, 15), datetime(2021, 7, 15), datetime(2021, 8, 16), datetime(2021,9,20),
+                datetime(2021,10,18), datetime(2021,11,15), datetime(2021,12,15)]:
         return ['background-color: lightsalmon']*3
     else:
         return ['background-color: white']*3
@@ -329,7 +224,7 @@ def main():
         ohjelman ajohetkellä. Kilpailua voidaan tarkastella kuukausi tasolla tai koko kilpailun tasolla.
     """)
     # Kuukausi muokkaukset
-    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 10, 10)
+    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 15, 15)
     mun_data, topin_data = data_taulukoiden_luonti()
     mun_data, topin_data = kuukauden_valinta(mun_data, topin_data, kuukausi)
     fig1, fig2, fig3 = graafit(mun_data, topin_data, kuukausi)
@@ -343,45 +238,26 @@ def main():
     topin_data = topin_data[~topin_data.index.duplicated(keep='first')]
     mun_kehitys = pd.DataFrame()
     mun_data_summa = mun_data.sum(axis=1)
-    mask = mun_data_summa > 6000
+    ka = mun_data.mean(axis=1)
+    mask = mun_data_summa > ka*6-500
     mun_data_summa[mask] = mun_data_summa[mask]/2
     mun_kehitys["Salkun arvo"] = mun_data_summa
     mun_kehitys["Muutos kisan alusta"] = (mun_kehitys["Salkun arvo"]/3000 - 1)
     topin_kehitys = pd.DataFrame()
     topin_data_summa = topin_data.sum(axis=1)
-    mask = topin_data_summa > 6000
+    ka = topin_data.mean(axis=1)
+    mask = topin_data_summa > ka*6-500
     topin_data_summa[mask] = topin_data_summa[mask]/2
     topin_kehitys["Salkun arvo"] = topin_data_summa
     topin_kehitys["Muutos kisan alusta"] = (topin_kehitys["Salkun arvo"]/3000 - 1)
     # Kuukausi muokkaukset
-    if kuukausi == 1:
-        mun_kehitys["Muutos kk alusta"] = mun_kehitys["Muutos kisan alusta"]
-        topin_kehitys["Muutos kk alusta"] = topin_kehitys["Muutos kisan alusta"]
-    if kuukausi == 2:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2020-12-18"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2020-12-18"]["Salkun arvo"] - 1)
-    if kuukausi == 3:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-01-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-01-15"]["Salkun arvo"] - 1)
-    if kuukausi == 4:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-02-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-02-15"]["Salkun arvo"] - 1)
-    if kuukausi == 5:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-03-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-03-15"]["Salkun arvo"] - 1)
-    if kuukausi == 6:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-04-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-04-15"]["Salkun arvo"] - 1)
-    if kuukausi == 7:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-05-14"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-05-14"]["Salkun arvo"] - 1)
-    if kuukausi == 8:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-06-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-06-15"]["Salkun arvo"] - 1)
-    if kuukausi == 9:
-        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc["2021-07-15"]["Salkun arvo"] - 1)
-        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc["2021-07-15"]["Salkun arvo"] - 1)
-    if kuukausi == 10:
+    ajat = ["2020-11-19", "2020-12-18", "2021-01-15", "2021-02-15", "2021-03-15", 
+            "2021-04-15", "2021-05-14", "2021-06-15", "2021-07-15", "2021-08-16", "2021-09-20", 
+            "2021-10-18", "2021-11-15", "2021-12-15", date.today() + timedelta(days=1)]
+    if kuukausi > 1 and kuukausi < len(ajat):
+        mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc[ajat[kuukausi - 1]]["Salkun arvo"] - 1)
+        topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc[ajat[kuukausi - 1]]["Salkun arvo"] - 1)
+    else:
         mun_kehitys["Muutos kk alusta"] = mun_kehitys["Muutos kisan alusta"]
         topin_kehitys["Muutos kk alusta"] = topin_kehitys["Muutos kisan alusta"]
 
