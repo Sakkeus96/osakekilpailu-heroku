@@ -54,8 +54,7 @@ def graafit(mun_data, topin_data, kuukausi):
     # Kuukausi muokkaukset TÄMÄ VAIKUTTAA VAAN INDEKSIIN
     ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-16"), ("2021-02-15","2021-03-15"), ("2021-03-15","2021-04-15"),
                     ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-14"), ("2021-06-15","2021-07-14"), ("2021-07-15","2021-08-16"), ("2021-08-16","2021-09-20"),
-                    ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15",date.today() + timedelta(days=1))]
-
+                    ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15","2022-01-14"), ("2022-01-14",date.today() + timedelta(days=1))]
     pituus = len(ostot_ja_myynnit)
     if kuukausi <= pituus:
         indeksi = indeksi.loc[ostot_ja_myynnit[kuukausi - 1][0]:ostot_ja_myynnit[kuukausi - 1][1]]
@@ -157,17 +156,20 @@ def data_taulukoiden_luonti():
     neljätoista_kk_osakkeet = {"Nordea":"NDA-FI.HE", "TietoEvry":"TIETO.HE", 
                              "Tokmanni":"TOKMAN.HE", "Tecnotree":"TEM1V.HE", 
                              "Avidly":"AVIDLY.HE", "Stockmann":"STOCKA.HE"}
+    viidestoista_kk_osakkeet = {"Nordea":"NDA-FI.HE", "Nokia":"NOKIA.HE", 
+                             "Nokian renkaat":"TYRES.HE", "Rapala":"RAP1V.HE", 
+                             "Avidly":"AVIDLY.HE", "Revenio":"REG1V.HE"}
 
     osakelista = [ensimmäisen_kk_osakkeet, toisen_kk_osakkeet, kolmannen_kk_osakkeet, neljännen_kk_osakkeet, viidennen_kk_osakkeet, 
                     kuudennen_kk_osakkeet, seitsemännen_kk_osakkeet, kasi_kk_osakkeet, ysi_kk_osakkeet, kymppi_kk_osakkeet, ykstoista_kk_osakkeet, 
-                    kakstoista_kk_osakkeet, kolmetoista_kk_osakkeet, neljätoista_kk_osakkeet]
+                    kakstoista_kk_osakkeet, kolmetoista_kk_osakkeet, neljätoista_kk_osakkeet, viidestoista_kk_osakkeet]
                              
 
     # Kunkin kuukauden aloitus ja lopetus
     # Kuukausi muokkaukset
     ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-16"), ("2021-02-15","2021-03-16"), ("2021-03-15","2021-04-16"),
                         ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-15"), ("2021-06-15","2021-07-15"), ("2021-07-15","2021-08-17"), ("2021-08-16","2021-09-21"),
-                        ("2021-09-20","2021-10-19"), ("2021-10-18","2021-11-16"), ("2021-11-15","2021-12-16"), ("2021-12-15",date.today() + timedelta(days=1))]
+                        ("2021-09-20","2021-10-19"), ("2021-10-18","2021-11-16"), ("2021-11-15","2021-12-16"), ("2021-12-15","2022-01-15"), ("2022-01-14",date.today() + timedelta(days=1))]
     
     salkun_arvo_mun = 3000
     salkun_arvo_topin = 3000
@@ -186,7 +188,7 @@ def kuukauden_valinta(mun_data, topin_data, kuukausi):
     # Kuukausi muokkaukset
     ostot_ja_myynnit = [("2020-11-19","2020-12-19"), ("2020-12-18","2021-01-16"), ("2021-01-15","2021-02-15"), ("2021-02-15","2021-03-15"), ("2021-03-15","2021-04-15"),
                         ("2021-04-15","2021-05-15"), ("2021-05-14","2021-06-14"), ("2021-06-15","2021-07-14"), ("2021-07-15","2021-08-16"), ("2021-08-16","2021-09-20"),
-                        ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15",date.today() + timedelta(days=1))]
+                        ("2021-09-20","2021-10-18"), ("2021-10-18","2021-11-15"), ("2021-11-15","2021-12-15"), ("2021-12-15","2022-01-14"), ("2022-01-14",date.today() + timedelta(days=1))]
     pituus = len(ostot_ja_myynnit)
     if kuukausi <= pituus:
         mun_data = mun_data.loc[ostot_ja_myynnit[kuukausi - 1][0]:ostot_ja_myynnit[kuukausi - 1][1]]
@@ -205,8 +207,8 @@ def taulukon_värjäys(val):
 def kuukauden_alotuksen_värjäys(s):
     # Kuukausi muokkaukset
     if s.name in [datetime(2020, 11, 19), datetime(2020, 12, 18), datetime(2021, 1, 15), datetime(2021, 2, 15), datetime(2021, 3, 15), 
-                datetime(2021, 4, 15), datetime(2021, 5, 14), datetime(2021, 6, 15), datetime(2021, 7, 15), datetime(2021, 8, 16), datetime(2021,9,20),
-                datetime(2021,10,18), datetime(2021,11,15), datetime(2021,12,15)]:
+                datetime(2021, 4, 15), datetime(2021, 5, 14), datetime(2021, 6, 15), datetime(2021, 7, 15), datetime(2021, 8, 16), datetime(2021, 9, 20),
+                datetime(2021, 10, 18), datetime(2021, 11, 15), datetime(2021, 12, 15), datetime(2022, 1, 14)]:
         return ['background-color: lightsalmon']*3
     else:
         return ['background-color: white']*3
@@ -224,7 +226,7 @@ def main():
         ohjelman ajohetkellä. Kilpailua voidaan tarkastella kuukausi tasolla tai koko kilpailun tasolla.
     """)
     # Kuukausi muokkaukset
-    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 15, 15)
+    kuukausi = st.slider("Valitse näytettävä kuukausi. Viimeinen = kaikki kuukaudet", 1, 16, 16)
     mun_data, topin_data = data_taulukoiden_luonti()
     mun_data, topin_data = kuukauden_valinta(mun_data, topin_data, kuukausi)
     fig1, fig2, fig3 = graafit(mun_data, topin_data, kuukausi)
@@ -253,7 +255,7 @@ def main():
     # Kuukausi muokkaukset
     ajat = ["2020-11-19", "2020-12-18", "2021-01-15", "2021-02-15", "2021-03-15", 
             "2021-04-15", "2021-05-14", "2021-06-15", "2021-07-15", "2021-08-16", "2021-09-20", 
-            "2021-10-18", "2021-11-15", "2021-12-15", date.today() + timedelta(days=1)]
+            "2021-10-18", "2021-11-15", "2021-12-15","2022-01-14", date.today() + timedelta(days=1)]
     if kuukausi > 1 and kuukausi < len(ajat):
         mun_kehitys["Muutos kk alusta"] = (mun_kehitys["Salkun arvo"]/mun_kehitys.loc[ajat[kuukausi - 1]]["Salkun arvo"] - 1)
         topin_kehitys["Muutos kk alusta"] = (topin_kehitys["Salkun arvo"]/topin_kehitys.loc[ajat[kuukausi - 1]]["Salkun arvo"] - 1)
